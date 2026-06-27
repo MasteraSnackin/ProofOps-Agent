@@ -175,7 +175,25 @@ Current data-source behaviour:
 
 ## Screenshots or Demo
 
-No screenshots are committed yet.
+Production demo:
+
+[https://proofops.vercel.app](https://proofops.vercel.app)
+
+Animated workflow capture:
+
+<img src="docs/assets/proofops-agent-demo.gif" alt="Animated ProofOps workflow showing deal selection, proof matching, live sources and Attio write-back" width="960">
+
+The capture shows ProofOps moving from a stalled Attio-style deal to a generated proof recommendation with reference contact, consent status, live Tavily sources, Gemini judgement, Superlinked retrieval and dry-run Attio write-back.
+
+### Demo Frames
+
+| Step | Screenshot | What it shows |
+| --- | --- | --- |
+| 1 | <img src="docs/assets/proofops-01-ready.jpg" alt="ProofOps ready state" width="320"> | Camden Integrated Care Board is selected and the agent is ready to run. |
+| 2 | <img src="docs/assets/proofops-02-running.jpg" alt="ProofOps running state" width="320"> | The workflow starts and the agent begins reading CRM context, matching proof and checking evidence. |
+| 3 | <img src="docs/assets/proofops-03-generated-reference.jpg" alt="ProofOps generated reference result" width="320"> | The generated result recommends Northstar Health Trust, shows the reference contact and confirms consent is approved until 2026-12-15. |
+| 4 | <img src="docs/assets/proofops-04-live-sources.jpg" alt="ProofOps live source evidence" width="320"> | The Evidence tab shows live Tavily source links and confidence labels. |
+| 5 | <img src="docs/assets/proofops-05-attio-writeback.jpg" alt="ProofOps Attio write-back preview" width="320"> | The Attio writes tab shows the CRM-ready note, follow-up task and draft reference request. |
 
 Local demo path:
 
@@ -202,7 +220,7 @@ Vercel build settings:
 - Framework preset: Vite
 - Build command: `npm run build`
 - Output directory: `dist`
-- API functions: `api/[...path].ts`
+- API functions: explicit route files under `api/`
 
 Deploy with the Vercel CLI:
 
