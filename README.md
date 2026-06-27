@@ -343,12 +343,9 @@ Suggested workflow:
 
 ## Licence
 
-`<ADD LICENSE>`
-
 No licence file is currently present in this repository.
 
 ## Contact or Support
 
-`<ADD CONTACT OR SUPPORT CHANNEL>`
 
 For hackathon judging, start with the local demo at `http://127.0.0.1:5173/` and review `/api/health` to confirm which integrations are active.
