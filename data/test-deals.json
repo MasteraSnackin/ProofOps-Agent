@@ -1,0 +1,290 @@
+[
+  {
+    "id": "deal-001",
+    "object_slug": "deals",
+    "record_id": "rec_deal_camden_icb",
+    "scenario": "stalled_health_public_sector",
+    "values": {
+      "name": "Camden Integrated Care Board",
+      "stage": "Stalled",
+      "value": "GBP 182000",
+      "owner": "Ari Lane",
+      "stalled_days": 18,
+      "segment": "Public sector",
+      "use_case": "AI triage and operational workflow automation for referral backlog reduction",
+      "objections": ["data governance", "clinical safety", "evidence from similar public health buyer"],
+      "risk": "Champion asked for proof before board review and has not replied since.",
+      "next_meeting": "Board prep call in 5 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Public sector",
+      "preferred_consent": "approved",
+      "next_action": "Attach approved healthcare proof and brief the owner."
+    }
+  },
+  {
+    "id": "deal-002",
+    "object_slug": "deals",
+    "record_id": "rec_deal_crownbridge_council",
+    "scenario": "local_government_evaluation",
+    "values": {
+      "name": "Crownbridge Council",
+      "stage": "Evaluation",
+      "value": "GBP 96000",
+      "owner": "Sam Patel",
+      "stalled_days": 9,
+      "segment": "Public sector",
+      "use_case": "Citizen service automation for inbound document-heavy requests",
+      "objections": ["legacy systems", "accessibility", "staff adoption"],
+      "risk": "Evaluation committee wants evidence from another council.",
+      "next_meeting": "Procurement discovery tomorrow",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Public sector",
+      "preferred_consent": "pending",
+      "next_action": "Request consent before naming the council externally."
+    }
+  },
+  {
+    "id": "deal-003",
+    "object_slug": "deals",
+    "record_id": "rec_deal_quarry_co",
+    "scenario": "mid_market_procurement_security",
+    "values": {
+      "name": "Quarry & Co",
+      "stage": "Procurement",
+      "value": "GBP 74000",
+      "owner": "Noor Ahmed",
+      "stalled_days": 5,
+      "segment": "Mid-market",
+      "use_case": "Automated quote generation for technical sales team",
+      "objections": ["technical accuracy", "security review"],
+      "risk": "Commercial approval paused until engineering signs off.",
+      "next_meeting": "Security review in 8 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Mid-market",
+      "preferred_consent": "restricted",
+      "next_action": "Use anonymised proof or ask the account owner for approval."
+    }
+  },
+  {
+    "id": "deal-004",
+    "object_slug": "deals",
+    "record_id": "rec_deal_helios_biolabs",
+    "scenario": "bad_fit_identity_project",
+    "values": {
+      "name": "Helios BioLabs",
+      "stage": "Discovery",
+      "value": "GBP 41000",
+      "owner": "Jules Grant",
+      "stalled_days": 3,
+      "segment": "SMB",
+      "use_case": "Single sign-on migration and access control cleanup",
+      "objections": ["identity provider migration", "IT capacity", "low sales relevance"],
+      "risk": "Buyer need is mostly identity administration rather than revenue workflow automation.",
+      "next_meeting": "Technical fit review in 6 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "None",
+      "preferred_consent": "none",
+      "next_action": "Flag as weak proof fit and avoid forcing irrelevant sales references."
+    }
+  },
+  {
+    "id": "deal-005",
+    "object_slug": "deals",
+    "record_id": "rec_deal_fenwick_retail",
+    "scenario": "enterprise_retail_expansion",
+    "values": {
+      "name": "Fenwick Retail Group",
+      "stage": "Stalled",
+      "value": "GBP 221000",
+      "owner": "Mira Shah",
+      "stalled_days": 22,
+      "segment": "Enterprise",
+      "use_case": "Account intelligence and renewal risk monitoring across regional buying teams",
+      "objections": ["tool sprawl", "CRM trust", "executive visibility"],
+      "risk": "VP wants proof that account teams will use the insights weekly.",
+      "next_meeting": "Executive sponsor review in 4 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Enterprise",
+      "preferred_consent": "approved",
+      "next_action": "Attach approved enterprise account intelligence proof."
+    }
+  },
+  {
+    "id": "deal-006",
+    "object_slug": "deals",
+    "record_id": "rec_deal_orbit_payments",
+    "scenario": "fintech_compliance_procurement",
+    "values": {
+      "name": "Orbit Payments",
+      "stage": "Procurement",
+      "value": "GBP 134000",
+      "owner": "Theo Martin",
+      "stalled_days": 11,
+      "segment": "Mid-market",
+      "use_case": "Compliance evidence pack automation for regulated sales cycles",
+      "objections": ["audit trail", "security review", "data residency"],
+      "risk": "Security team requires proof from a regulated buyer.",
+      "next_meeting": "Risk committee review in 7 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Mid-market",
+      "preferred_consent": "approved",
+      "next_action": "Attach regulated-market proof and security evidence."
+    }
+  },
+  {
+    "id": "deal-007",
+    "object_slug": "deals",
+    "record_id": "rec_deal_larch_housing",
+    "scenario": "housing_association_public_like",
+    "values": {
+      "name": "Larch Housing Association",
+      "stage": "Evaluation",
+      "value": "GBP 119000",
+      "owner": "Priya Holt",
+      "stalled_days": 14,
+      "segment": "Public sector",
+      "use_case": "Resident case routing and document extraction for repairs backlog",
+      "objections": ["legacy systems", "accessibility", "resident data protection"],
+      "risk": "Committee requested evidence from another service-heavy public organisation.",
+      "next_meeting": "Stakeholder workshop in 3 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Public sector",
+      "preferred_consent": "pending",
+      "next_action": "Use council proof internally and request consent before sharing names."
+    }
+  },
+  {
+    "id": "deal-008",
+    "object_slug": "deals",
+    "record_id": "rec_deal_ardent_manufacturing",
+    "scenario": "manufacturing_quote_automation",
+    "values": {
+      "name": "Ardent Manufacturing",
+      "stage": "Stalled",
+      "value": "GBP 88000",
+      "owner": "Noor Ahmed",
+      "stalled_days": 16,
+      "segment": "Mid-market",
+      "use_case": "Technical quote automation and sales engineering assistant",
+      "objections": ["technical accuracy", "margin leakage", "engineering adoption"],
+      "risk": "Sales engineering lead is worried generated quote logic will be inaccurate.",
+      "next_meeting": "Sales engineering review in 2 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Mid-market",
+      "preferred_consent": "restricted",
+      "next_action": "Use anonymised manufacturing proof until named consent is refreshed."
+    }
+  },
+  {
+    "id": "deal-009",
+    "object_slug": "deals",
+    "record_id": "rec_deal_vale_university",
+    "scenario": "education_operations",
+    "values": {
+      "name": "Vale University",
+      "stage": "Evaluation",
+      "value": "GBP 156000",
+      "owner": "Ari Lane",
+      "stalled_days": 7,
+      "segment": "Public sector",
+      "use_case": "Student enquiry routing and departmental workflow automation",
+      "objections": ["data governance", "procurement risk", "department adoption"],
+      "risk": "Procurement wants proof from another public institution before shortlist.",
+      "next_meeting": "Procurement shortlist in 9 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Public sector",
+      "preferred_consent": "approved",
+      "next_action": "Use approved public-sector workflow proof."
+    }
+  },
+  {
+    "id": "deal-010",
+    "object_slug": "deals",
+    "record_id": "rec_deal_bluerail_freight",
+    "scenario": "logistics_account_risk",
+    "values": {
+      "name": "BlueRail Freight",
+      "stage": "Stalled",
+      "value": "GBP 173000",
+      "owner": "Mira Shah",
+      "stalled_days": 21,
+      "segment": "Enterprise",
+      "use_case": "Renewal risk monitoring and escalation prediction for strategic logistics accounts",
+      "objections": ["tool sprawl", "integration cost", "low CRM trust"],
+      "risk": "Regional director asked for evidence that alerts reduce escalations.",
+      "next_meeting": "Regional director follow-up in 5 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Enterprise",
+      "preferred_consent": "expired",
+      "next_action": "Refresh consent before using named logistics proof."
+    }
+  },
+  {
+    "id": "deal-011",
+    "object_slug": "deals",
+    "record_id": "rec_deal_shoreline_insurance",
+    "scenario": "insurance_risk_workflow",
+    "values": {
+      "name": "Shoreline Insurance",
+      "stage": "Procurement",
+      "value": "GBP 201000",
+      "owner": "Theo Martin",
+      "stalled_days": 12,
+      "segment": "Enterprise",
+      "use_case": "Underwriting intake automation and broker response routing",
+      "objections": ["audit trail", "regulatory evidence", "data governance"],
+      "risk": "Legal team wants proof that regulated workflows keep a clear audit trail.",
+      "next_meeting": "Legal review in 6 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Enterprise",
+      "preferred_consent": "approved",
+      "next_action": "Attach regulated workflow proof and evidence claims."
+    }
+  },
+  {
+    "id": "deal-012",
+    "object_slug": "deals",
+    "record_id": "rec_deal_ashfield_energy",
+    "scenario": "energy_public_procurement",
+    "values": {
+      "name": "Ashfield Energy",
+      "stage": "Evaluation",
+      "value": "GBP 142000",
+      "owner": "Sam Patel",
+      "stalled_days": 10,
+      "segment": "Mid-market",
+      "use_case": "RFP response automation and compliance evidence assembly",
+      "objections": ["technical accuracy", "audit trail", "procurement risk"],
+      "risk": "Procurement asked for proof from a technical sales team with compliance pressure.",
+      "next_meeting": "RFP response review in 4 days",
+      "proofops_summary": ""
+    },
+    "expected": {
+      "best_proof_segment": "Mid-market",
+      "preferred_consent": "approved",
+      "next_action": "Attach approved compliance and quote automation proof."
+    }
+  }
+]

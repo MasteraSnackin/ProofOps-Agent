@@ -1,0 +1,217 @@
+[
+  {
+    "id": "workflow-001",
+    "scenario": "normal_stalled_deal",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "x-proofops-secret": "dev-secret",
+      "idempotency-key": "evt_camden_stalled_001"
+    },
+    "body": {
+      "dealId": "deal-001",
+      "trigger": "deal_stalled",
+      "events": [
+        {
+          "event_id": "evt_camden_stalled_001",
+          "type": "record.updated",
+          "id": {
+            "workspace_id": "wrk_test",
+            "object_id": "obj_deals",
+            "record_id": "rec_deal_camden_icb"
+          },
+          "data": {
+            "object_slug": "deals",
+            "record_id": "rec_deal_camden_icb",
+            "changed_attribute": "stalled_days"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "http_status": 200,
+      "duplicate_suppressed": false,
+      "best_match_hint": "Northstar Health Trust"
+    }
+  },
+  {
+    "id": "workflow-002",
+    "scenario": "duplicate_same_idempotency_key",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "x-proofops-secret": "dev-secret",
+      "idempotency-key": "evt_camden_stalled_001"
+    },
+    "body": {
+      "dealId": "deal-001",
+      "trigger": "deal_stalled",
+      "events": [
+        {
+          "event_id": "evt_camden_stalled_001",
+          "type": "record.updated",
+          "id": {
+            "workspace_id": "wrk_test",
+            "object_id": "obj_deals",
+            "record_id": "rec_deal_camden_icb"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "http_status": 200,
+      "duplicate_suppressed": true,
+      "trace_contains": "Duplicate guard"
+    }
+  },
+  {
+    "id": "workflow-003",
+    "scenario": "missing_webhook_secret",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "idempotency-key": "evt_crownbridge_missing_secret"
+    },
+    "body": {
+      "dealId": "deal-002",
+      "trigger": "manual_proof_request"
+    },
+    "requires_env": {
+      "PROOFOPS_WEBHOOK_SECRET": "dev-secret"
+    },
+    "expected": {
+      "http_status": 401,
+      "error": "ProofOps webhook secret missing or invalid"
+    }
+  },
+  {
+    "id": "workflow-004",
+    "scenario": "procurement_security_review",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "authorization": "Bearer dev-secret",
+      "idempotency-key": "evt_quarry_security_001"
+    },
+    "body": {
+      "dealId": "deal-003",
+      "trigger": "manual_proof_request",
+      "requested_by": "Noor Ahmed",
+      "proof_need": "Technical accuracy and security review proof before procurement call"
+    },
+    "expected": {
+      "http_status": 200,
+      "best_match_hint": "Finch Robotics",
+      "consent_guardrail": "restricted"
+    }
+  },
+  {
+    "id": "workflow-005",
+    "scenario": "bad_fit_identity_project",
+    "method": "POST",
+    "path": "/api/proof/run",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": {
+      "dealId": "deal-004",
+      "trigger": "manual_proof_request",
+      "proof_need": "SSO migration reference"
+    },
+    "expected": {
+      "http_status": 200,
+      "quality_check": "Low score or weak-fit proof should be obvious in the result."
+    }
+  },
+  {
+    "id": "workflow-006",
+    "scenario": "inline_deal_payload",
+    "method": "POST",
+    "path": "/api/proof/run",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": {
+      "deal": {
+        "id": "inline-deal-001",
+        "company": "Inline Demo Buyer",
+        "stage": "Stalled",
+        "value": "GBP 52000",
+        "owner": "Demo Owner",
+        "stalledDays": 15,
+        "segment": "Public sector",
+        "useCase": "Document-heavy intake routing",
+        "objections": ["legacy systems", "accessibility"],
+        "risk": "Buyer wants a same-segment reference.",
+        "nextMeeting": "Demo review tomorrow"
+      }
+    },
+    "expected": {
+      "http_status": 200,
+      "trace_contains": "Accepted inline deal payload"
+    }
+  },
+  {
+    "id": "workflow-007",
+    "scenario": "dry_run_with_attio_key",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "x-proofops-secret": "dev-secret",
+      "idempotency-key": "evt_orbit_dry_run"
+    },
+    "requires_env": {
+      "ATTIO_API_KEY": "test-token",
+      "ATTIO_WRITE_MODE": "dry-run"
+    },
+    "body": {
+      "dealId": "deal-006",
+      "trigger": "deal_procurement_risk"
+    },
+    "expected": {
+      "http_status": 200,
+      "attio_write_status": "dry-run"
+    }
+  },
+  {
+    "id": "workflow-008",
+    "scenario": "live_write_rehearsal_payload",
+    "method": "POST",
+    "path": "/api/attio/workflow",
+    "headers": {
+      "content-type": "application/json",
+      "x-proofops-secret": "dev-secret",
+      "idempotency-key": "evt_shoreline_live_ready"
+    },
+    "requires_env": {
+      "ATTIO_API_KEY": "real-token-required",
+      "ATTIO_WRITE_MODE": "live",
+      "ATTIO_DEAL_OBJECT": "deals",
+      "ATTIO_PROOF_ATTRIBUTE": "proofops_summary"
+    },
+    "body": {
+      "dealId": "deal-011",
+      "trigger": "legal_review_needs_proof",
+      "events": [
+        {
+          "event_id": "evt_shoreline_live_ready",
+          "type": "record.updated",
+          "id": {
+            "workspace_id": "wrk_test",
+            "object_id": "obj_deals",
+            "record_id": "rec_deal_shoreline_insurance"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "http_status": 200,
+      "attio_write_status": "created when real token and object mapping are valid"
+    }
+  }
+]

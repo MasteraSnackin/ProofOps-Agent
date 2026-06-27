@@ -1,0 +1,78 @@
+{
+  "objects": {
+    "deals": {
+      "object_slug": "deals",
+      "description": "Existing Attio deal object used by ProofOps workflow triggers.",
+      "attributes": {
+        "name": "name",
+        "stage": "stage",
+        "value": "value",
+        "owner": "owner",
+        "stalled_days": "stalled_days",
+        "segment": "segment",
+        "use_case": "use_case",
+        "objections": "objections",
+        "risk": "risk",
+        "next_meeting": "next_meeting",
+        "proofops_summary": "proofops_summary"
+      }
+    },
+    "proof_assets": {
+      "object_slug": "proof_assets",
+      "description": "Suggested custom object for customer proof, consent and evidence.",
+      "attributes": {
+        "company": "company",
+        "sector": "sector",
+        "segment": "segment",
+        "champion": "champion",
+        "consent": "consent",
+        "consent_expires_at": "consent_expires_at",
+        "outcomes": "outcomes",
+        "products": "products",
+        "objections_handled": "objections_handled",
+        "signals": "signals",
+        "renewal_health": "renewal_health",
+        "evidence_title": "evidence_title",
+        "evidence_source": "evidence_source",
+        "evidence_url": "evidence_url",
+        "evidence_claim": "evidence_claim",
+        "evidence_confidence": "evidence_confidence"
+      }
+    }
+  },
+  "environment": {
+    "ATTIO_DEAL_OBJECT": "deals",
+    "ATTIO_PROOF_OBJECT": "proof_assets",
+    "ATTIO_PROOF_ATTRIBUTE": "proofops_summary",
+    "ATTIO_DEAL_NAME_ATTRIBUTE": "name",
+    "ATTIO_DEAL_STAGE_ATTRIBUTE": "stage",
+    "ATTIO_DEAL_VALUE_ATTRIBUTE": "value",
+    "ATTIO_DEAL_OWNER_ATTRIBUTE": "owner",
+    "ATTIO_DEAL_STALLED_DAYS_ATTRIBUTE": "stalled_days",
+    "ATTIO_DEAL_SEGMENT_ATTRIBUTE": "segment",
+    "ATTIO_DEAL_USE_CASE_ATTRIBUTE": "use_case",
+    "ATTIO_DEAL_OBJECTIONS_ATTRIBUTE": "objections",
+    "ATTIO_DEAL_RISK_ATTRIBUTE": "risk",
+    "ATTIO_DEAL_NEXT_MEETING_ATTRIBUTE": "next_meeting",
+    "ATTIO_PROOF_COMPANY_ATTRIBUTE": "company",
+    "ATTIO_PROOF_SECTOR_ATTRIBUTE": "sector",
+    "ATTIO_PROOF_SEGMENT_ATTRIBUTE": "segment",
+    "ATTIO_PROOF_CHAMPION_ATTRIBUTE": "champion",
+    "ATTIO_PROOF_CONSENT_ATTRIBUTE": "consent",
+    "ATTIO_PROOF_CONSENT_EXPIRES_ATTRIBUTE": "consent_expires_at",
+    "ATTIO_PROOF_OUTCOMES_ATTRIBUTE": "outcomes",
+    "ATTIO_PROOF_PRODUCTS_ATTRIBUTE": "products",
+    "ATTIO_PROOF_OBJECTIONS_ATTRIBUTE": "objections_handled",
+    "ATTIO_PROOF_SIGNALS_ATTRIBUTE": "signals",
+    "ATTIO_PROOF_HEALTH_ATTRIBUTE": "renewal_health",
+    "ATTIO_PROOF_EVIDENCE_TITLE_ATTRIBUTE": "evidence_title",
+    "ATTIO_PROOF_EVIDENCE_CLAIM_ATTRIBUTE": "evidence_claim",
+    "ATTIO_PROOF_EVIDENCE_CONFIDENCE_ATTRIBUTE": "evidence_confidence"
+  },
+  "notes": [
+    "Use single-select values for consent: approved, pending, restricted, expired.",
+    "Use number attributes for stalled_days, renewal_health and evidence_confidence.",
+    "Use multi-select or text-list style attributes for objections, outcomes, products, objections_handled and signals.",
+    "Use proofops_summary on the deal object for the write-back summary."
+  ]
+}
