@@ -19,6 +19,7 @@ The current project uses fixture Attio-shaped CRM records for deals and proof as
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Partner and Sponsor Usage](#partner-and-sponsor-usage)
 - [Architecture Overview](#architecture-overview)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -62,6 +63,10 @@ Partner services:
 - Google Gemini API
 - SLNG speech-to-text and text-to-speech
 - n8n webhook automation
+
+## Partner and Sponsor Usage
+
+See [SPONSORS.md](SPONSORS.md) for the partner technologies used in ProofOps and why each one matters to the demo.
 
 ## Architecture Overview
 
