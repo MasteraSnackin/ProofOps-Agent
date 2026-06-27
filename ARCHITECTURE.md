@@ -161,12 +161,13 @@ There is no database in the current MVP. Fixture data is read from JSON files. L
 
 ## Infrastructure and Deployment
 
-Current infrastructure is local development only:
+Current infrastructure supports local development and Vercel deployment:
 
 - Vite dev server on `127.0.0.1:5173`.
 - Vite middleware serves local API routes in the same process.
 - Static production assets are built with `npm run build`.
-- No production hosting target is configured.
+- Vercel serves the built `dist` frontend and `api/[...path].ts` serverless function.
+- `vercel.json` includes `data/**` in the API function bundle for fixture CRM records.
 - No CI workflow is configured.
 
 For webhook demos, expose the local Vite server with a tunnel such as:
@@ -175,7 +176,7 @@ For webhook demos, expose the local Vite server with a tunnel such as:
 ngrok http 5173
 ```
 
-Production deployment target: `<ADD DETAIL>`.
+Production deployment target: Vercel.
 
 ## Scalability and Reliability
 

@@ -24,6 +24,7 @@ The current project uses fixture Attio-shaped CRM records for deals and proof as
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Screenshots or Demo](#screenshots-or-demo)
+- [Deployment](#deployment)
 - [API Reference](#api-reference)
 - [Tests](#tests)
 - [Roadmap](#roadmap)
@@ -184,6 +185,31 @@ ngrok http 5173
 ```
 
 Then point n8n or Attio Workflow to the tunnel URL.
+
+## Deployment
+
+The project is configured for Vercel with [vercel.json](vercel.json).
+
+Vercel build settings:
+
+- Framework preset: Vite
+- Build command: `npm run build`
+- Output directory: `dist`
+- API functions: `api/[...path].ts`
+
+Deploy with the Vercel CLI:
+
+```bash
+vercel --prod
+```
+
+Set the same server-side environment variables in Vercel Project Settings before relying on live integrations. At minimum, configure the keys for the partners you want active in production. Keep `ATTIO_WRITE_MODE=dry-run` until live CRM mutation is intended.
+
+After deployment, verify:
+
+```bash
+curl https://your-vercel-domain.vercel.app/api/health
+```
 
 ## API Reference
 

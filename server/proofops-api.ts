@@ -14,7 +14,7 @@ import {
   type Evidence,
   type ProofMatch,
   type ProofRun,
-} from "../src/domain";
+} from "../src/domain.js";
 
 type Env = Record<string, string | undefined>;
 type JsonBody = Record<string, unknown>;
@@ -48,134 +48,142 @@ export function proofopsApiPlugin(env: Env): Plugin {
   return {
     name: "proofops-api",
     configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
-        const pathname = req.url?.split("?")[0];
-        if (!pathname?.startsWith("/api/")) {
-          next();
-          return;
-        }
-
-        try {
-          if (req.method === "GET" && pathname === "/api/health") {
-            const fixtureData = loadFixtureData();
-            sendJson(res, 200, {
-              ok: true,
-              partners: {
-                attio: Boolean(env.ATTIO_API_KEY),
-                tavily: Boolean(env.TAVILY_API_KEY),
-                gemini: Boolean(env.GOOGLE_API_KEY),
-                slng: Boolean(env.SLNG_API_KEY),
-                superlinked: Boolean(env.SUPERLINKED_API_KEY && env.SIE_ENDPOINT),
-              },
-              attioObjects: {
-                deals: env.ATTIO_DEAL_OBJECT || "not configured",
-                proofAssets: env.ATTIO_PROOF_OBJECT || "not configured",
-              },
-              automation: {
-                n8nWebhook: Boolean(env.N8N_WEBHOOK_URL),
-              },
-              fixtures: {
-                deals: fixtureData.dealRecords.length,
-                proofAssets: fixtureData.proofRecords.length,
-                workflowPayloads: fixtureData.workflowPayloads.length,
-                totalExamples: fixtureData.dealRecords.length + fixtureData.proofRecords.length + fixtureData.workflowPayloads.length,
-              },
-              dataSources: {
-                crm: env.ATTIO_DEAL_OBJECT && env.ATTIO_PROOF_OBJECT ? "attio" : "fixture",
-                publicEvidence: env.TAVILY_API_KEY ? "tavily-live-web" : "stored-notes",
-                retrieval: env.SUPERLINKED_API_KEY && env.SIE_ENDPOINT ? "superlinked-live-sie" : "local",
-              },
-              webhookSecurity: env.PROOFOPS_WEBHOOK_SECRET ? "shared secret enabled" : "open in local demo",
-              writeMode: env.ATTIO_WRITE_MODE || "dry-run",
-            });
-            return;
-          }
-
-          if (req.method === "GET" && pathname === "/api/deals") {
-            const fixtureData = loadFixtureData();
-            sendJson(res, 200, {
-              data: fixtureData.deals,
-              meta: {
-                source: fixtureData.deals.length ? "fixture-crm" : "domain-fallback",
-                count: fixtureData.deals.length,
-              },
-            });
-            return;
-          }
-
-          if (req.method === "POST" && pathname === "/api/voice/tts") {
-            const body = await readJson(req);
-            const text = typeof body.text === "string" ? body.text.trim() : "";
-            if (!env.SLNG_API_KEY) {
-              sendJson(res, 401, { error: "SLNG_API_KEY is not configured" });
-              return;
-            }
-
-            if (!text) {
-              sendJson(res, 400, { error: "Missing text for SLNG speech synthesis" });
-              return;
-            }
-
-            const audio = await slngTextToSpeech(text, env);
-            sendBinary(res, audio.statusCode, audio.contentType, audio.body);
-            return;
-          }
-
-          if (req.method === "POST" && pathname === "/api/voice/stt") {
-            if (!env.SLNG_API_KEY) {
-              sendJson(res, 401, { error: "SLNG_API_KEY is not configured" });
-              return;
-            }
-
-            const contentType = headerValue(req, "content-type");
-            if (!contentType?.includes("multipart/form-data")) {
-              sendJson(res, 400, { error: "Expected multipart/form-data with an audio field" });
-              return;
-            }
-
-            const transcript = await slngSpeechToText(req, contentType, env);
-            sendText(res, transcript.statusCode, transcript.contentType, transcript.body);
-            return;
-          }
-
-          if (req.method === "POST" && (pathname === "/api/proof/run" || pathname === "/api/attio/workflow")) {
-            const isWorkflow = pathname === "/api/attio/workflow";
-            if (isWorkflow && !isWebhookAuthorised(req, env)) {
-              sendJson(res, 401, { error: "ProofOps webhook secret missing or invalid" });
-              return;
-            }
-
-            const body = await readJson(req);
-            const idempotencyKey = isWorkflow ? getIdempotencyKey(req, body) : undefined;
-            const cached = idempotencyKey ? getCachedRun(idempotencyKey) : undefined;
-
-            if (cached) {
-              sendJson(res, 200, markDuplicate(cached));
-              return;
-            }
-
-            const run = await runProofOps(body, env, {
-              idempotencyKey,
-              webhookVerified: isWorkflow ? Boolean(env.PROOFOPS_WEBHOOK_SECRET) : false,
-            });
-
-            if (idempotencyKey) {
-              cacheRun(idempotencyKey, run, env);
-            }
-
-            sendJson(res, 200, run);
-            return;
-          }
-
-          sendJson(res, 404, { error: "Unknown ProofOps API route" });
-        } catch (error) {
-          sendJson(res, 500, {
-            error: error instanceof Error ? error.message : "Unknown ProofOps API error",
-          });
-        }
+      server.middlewares.use((req, res, next) => {
+        void handleProofOpsApi(req, res, env, next);
       });
     },
   };
+}
+
+export async function handleProofOpsApi(req: IncomingMessage, res: ServerResponse, env: Env, next?: () => void) {
+  const pathname = req.url?.split("?")[0];
+  if (!pathname?.startsWith("/api/")) {
+    if (next) {
+      next();
+      return;
+    }
+    sendJson(res, 404, { error: "Unknown ProofOps API route" });
+    return;
+  }
+
+  try {
+    if (req.method === "GET" && pathname === "/api/health") {
+      const fixtureData = loadFixtureData();
+      sendJson(res, 200, {
+        ok: true,
+        partners: {
+          attio: Boolean(env.ATTIO_API_KEY),
+          tavily: Boolean(env.TAVILY_API_KEY),
+          gemini: Boolean(env.GOOGLE_API_KEY),
+          slng: Boolean(env.SLNG_API_KEY),
+          superlinked: Boolean(env.SUPERLINKED_API_KEY && env.SIE_ENDPOINT),
+        },
+        attioObjects: {
+          deals: env.ATTIO_DEAL_OBJECT || "not configured",
+          proofAssets: env.ATTIO_PROOF_OBJECT || "not configured",
+        },
+        automation: {
+          n8nWebhook: Boolean(env.N8N_WEBHOOK_URL),
+        },
+        fixtures: {
+          deals: fixtureData.dealRecords.length,
+          proofAssets: fixtureData.proofRecords.length,
+          workflowPayloads: fixtureData.workflowPayloads.length,
+          totalExamples: fixtureData.dealRecords.length + fixtureData.proofRecords.length + fixtureData.workflowPayloads.length,
+        },
+        dataSources: {
+          crm: env.ATTIO_DEAL_OBJECT && env.ATTIO_PROOF_OBJECT ? "attio" : "fixture",
+          publicEvidence: env.TAVILY_API_KEY ? "tavily-live-web" : "stored-notes",
+          retrieval: env.SUPERLINKED_API_KEY && env.SIE_ENDPOINT ? "superlinked-live-sie" : "local",
+        },
+        webhookSecurity: env.PROOFOPS_WEBHOOK_SECRET ? "shared secret enabled" : "open in local demo",
+        writeMode: env.ATTIO_WRITE_MODE || "dry-run",
+      });
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/deals") {
+      const fixtureData = loadFixtureData();
+      sendJson(res, 200, {
+        data: fixtureData.deals,
+        meta: {
+          source: fixtureData.deals.length ? "fixture-crm" : "domain-fallback",
+          count: fixtureData.deals.length,
+        },
+      });
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/voice/tts") {
+      const body = await readJson(req);
+      const text = typeof body.text === "string" ? body.text.trim() : "";
+      if (!env.SLNG_API_KEY) {
+        sendJson(res, 401, { error: "SLNG_API_KEY is not configured" });
+        return;
+      }
+
+      if (!text) {
+        sendJson(res, 400, { error: "Missing text for SLNG speech synthesis" });
+        return;
+      }
+
+      const audio = await slngTextToSpeech(text, env);
+      sendBinary(res, audio.statusCode, audio.contentType, audio.body);
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/voice/stt") {
+      if (!env.SLNG_API_KEY) {
+        sendJson(res, 401, { error: "SLNG_API_KEY is not configured" });
+        return;
+      }
+
+      const contentType = headerValue(req, "content-type");
+      if (!contentType?.includes("multipart/form-data")) {
+        sendJson(res, 400, { error: "Expected multipart/form-data with an audio field" });
+        return;
+      }
+
+      const transcript = await slngSpeechToText(req, contentType, env);
+      sendText(res, transcript.statusCode, transcript.contentType, transcript.body);
+      return;
+    }
+
+    if (req.method === "POST" && (pathname === "/api/proof/run" || pathname === "/api/attio/workflow")) {
+      const isWorkflow = pathname === "/api/attio/workflow";
+      if (isWorkflow && !isWebhookAuthorised(req, env)) {
+        sendJson(res, 401, { error: "ProofOps webhook secret missing or invalid" });
+        return;
+      }
+
+      const body = await readJson(req);
+      const idempotencyKey = isWorkflow ? getIdempotencyKey(req, body) : undefined;
+      const cached = idempotencyKey ? getCachedRun(idempotencyKey) : undefined;
+
+      if (cached) {
+        sendJson(res, 200, markDuplicate(cached));
+        return;
+      }
+
+      const run = await runProofOps(body, env, {
+        idempotencyKey,
+        webhookVerified: isWorkflow ? Boolean(env.PROOFOPS_WEBHOOK_SECRET) : false,
+      });
+
+      if (idempotencyKey) {
+        cacheRun(idempotencyKey, run, env);
+      }
+
+      sendJson(res, 200, run);
+      return;
+    }
+
+    sendJson(res, 404, { error: "Unknown ProofOps API route" });
+  } catch (error) {
+    sendJson(res, 500, {
+      error: error instanceof Error ? error.message : "Unknown ProofOps API error",
+    });
+  }
 }
 
 async function runProofOps(body: JsonBody, env: Env, meta: RequestMeta): Promise<ProofRun> {
