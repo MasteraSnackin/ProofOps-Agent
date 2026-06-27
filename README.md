@@ -174,7 +174,7 @@ Environment variables are listed in [.env.example](.env.example). The most impor
 | `SLNG_TTS_URL` | SLNG TTS endpoint. |
 | `SLNG_STT_URL` | SLNG STT endpoint. |
 | `N8N_WEBHOOK_URL` | Optional n8n webhook endpoint for orchestration. |
-| `PROOFOPS_WEBHOOK_SECRET` | Optional shared secret for `/api/attio/workflow`. |
+| `PROOFOPS_WEBHOOK_SECRET` | Optional shared-secret variable for `/api/attio/workflow`; set only in private `.env` files or deployment secret storage. |
 
 Current data-source behaviour:
 
