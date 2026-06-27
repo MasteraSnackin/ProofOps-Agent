@@ -57,6 +57,352 @@ sequenceDiagram
 
 The workflow is deliberately staged. Local scoring provides a deterministic baseline, Superlinked reranks the proof inventory, Tavily adds public evidence, Gemini prepares the narrative judgement, and Attio write-back remains dry-run unless explicitly enabled.
 
+## Diagram Index
+
+- [System context](#system-context)
+- [Sponsor placement](#sponsor-placement)
+- [End-to-end data flow](#end-to-end-data-flow)
+- [Proof run sequence](#proof-run-sequence)
+- [Attio or n8n webhook sequence](#attio-or-n8n-webhook-sequence)
+- [SLNG voice sequence](#slng-voice-sequence)
+- [Deployment architecture](#deployment-architecture)
+- [Provider fallback state machine](#provider-fallback-state-machine)
+- [Trust boundaries](#trust-boundaries)
+
+## System Context
+
+```mermaid
+flowchart TB
+  SalesUser["Sales user"]
+  Browser["ProofOps React SPA"]
+  Api["ProofOps API routes"]
+  FixtureData[("Fixture CRM JSON")]
+  Attio["Attio CRM"]
+  Superlinked["Superlinked SIE"]
+  Tavily["Tavily Search"]
+  Gemini["Google DeepMind Gemini"]
+  SLNG["SLNG Voice API"]
+  N8N["n8n automation"]
+
+  SalesUser --> Browser
+  Browser -->|"GET /api/deals\nPOST /api/proof/run\nPOST /api/voice/*"| Api
+  Attio -->|"Workflow trigger\noptional live records"| Api
+  N8N -->|"Optional webhook orchestration"| Api
+  Api --> FixtureData
+  Api -->|"live read or write-back"| Attio
+  Api -->|"semantic score request"| Superlinked
+  Api -->|"public evidence search"| Tavily
+  Api -->|"structured judgement request"| Gemini
+  Api -->|"speech-to-text\ntext-to-speech"| SLNG
+```
+
+ProofOps has one deliberate trust boundary: the browser never talks to partner APIs directly. All partner credentials stay server-side in Vite middleware locally or in the Vercel serverless function in production.
+
+## Sponsor Placement
+
+```mermaid
+flowchart LR
+  Trigger["Deal trigger"]
+  Context["CRM context"]
+  Match["Baseline matching"]
+  Rerank["Semantic reranking"]
+  Evidence["Public evidence"]
+  Reason["Judgement and drafts"]
+  Voice["Voice interface"]
+  WriteBack["CRM action"]
+  Orchestration["Automation wrapper"]
+
+  Trigger --> Context --> Match --> Rerank --> Evidence --> Reason --> WriteBack
+  Reason --> Voice
+  Orchestration --> Trigger
+  WriteBack --> Orchestration
+
+  Attio["Attio\nCRM trigger, records, write-back"] --> Trigger
+  Attio --> Context
+  Attio --> WriteBack
+  Superlinked["Superlinked\nsemantic proof retrieval"] --> Rerank
+  Tavily["Tavily\nlive public evidence"] --> Evidence
+  Gemini["Google DeepMind Gemini\nreasoning and drafts"] --> Reason
+  SLNG["SLNG\nspeech input and output"] --> Voice
+  N8N["n8n\noptional workflow handoff"] --> Orchestration
+```
+
+Sponsor usage is not cosmetic. Each partner owns a distinct stage of the agent workflow:
+
+- **Attio:** CRM trigger, deal/proof record model and guarded write-back.
+- **Superlinked:** semantic reranking after deterministic local matching.
+- **Tavily:** live public evidence search for source-linked proof validation.
+- **Google DeepMind / Gemini:** final judgement, risk summary, next action, CRM note and buyer email draft.
+- **SLNG:** spoken input and spoken proof summary.
+- **n8n:** optional automation boundary around the webhook workflow.
+
+## End-to-End Data Flow
+
+```mermaid
+flowchart TD
+  DealSelection["Selected deal id or webhook payload"]
+  DealResolver["Deal resolver"]
+  DealSource{"Live Attio mapping configured?"}
+  AttioDeal["Read Attio deal record"]
+  FixtureDeal["Read fixture deal record"]
+  ProofInventory["Proof inventory loader"]
+  ProofSource{"Live proof object configured?"}
+  AttioProof["Read Attio proof assets"]
+  FixtureProof["Read fixture proof assets"]
+  LocalScore["Local consent-aware scoring"]
+  SuperlinkedScore["Superlinked semantic score"]
+  TavilyEvidence["Tavily public evidence"]
+  GeminiJudgement["Gemini judgement and drafts"]
+  WriteDecision{"ATTIO_WRITE_MODE=live?"}
+  DryRun["Prepare dry-run task and summary"]
+  LiveWrite["Create Attio task and optional summary update"]
+  ProofRun["ProofRun response"]
+  UI["Browser result view"]
+
+  DealSelection --> DealResolver
+  DealResolver --> DealSource
+  DealSource -->|"yes"| AttioDeal
+  DealSource -->|"no"| FixtureDeal
+  AttioDeal --> ProofInventory
+  FixtureDeal --> ProofInventory
+  ProofInventory --> ProofSource
+  ProofSource -->|"yes"| AttioProof
+  ProofSource -->|"no"| FixtureProof
+  AttioProof --> LocalScore
+  FixtureProof --> LocalScore
+  LocalScore --> SuperlinkedScore
+  SuperlinkedScore --> TavilyEvidence
+  TavilyEvidence --> GeminiJudgement
+  GeminiJudgement --> WriteDecision
+  WriteDecision -->|"no"| DryRun
+  WriteDecision -->|"yes"| LiveWrite
+  DryRun --> ProofRun
+  LiveWrite --> ProofRun
+  ProofRun --> UI
+```
+
+The important data object is `ProofRun`. It carries the selected deal, ranked proof matches, evidence, provider markers, security state, Attio write status and a trace of every step. That makes the demo auditable: judges can see which sponsor services were actually used, skipped or failed.
+
+## Proof Run Sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant User as Sales user
+  participant UI as React SPA
+  participant API as ProofOps API
+  participant CRM as Fixture or Attio data
+  participant SL as Superlinked
+  participant TV as Tavily
+  participant GM as Gemini
+  participant AT as Attio
+
+  User->>UI: Select stalled deal
+  UI->>API: POST /api/proof/run with dealId
+  API->>CRM: Resolve deal and proof inventory
+  CRM-->>API: Deal plus candidate proof assets
+  API->>API: Create local consent-aware baseline scores
+  alt Superlinked configured
+    API->>SL: Score deal query against proof items
+    SL-->>API: Semantic scores and ranks
+    API->>API: Blend semantic score with local score
+  else Superlinked unavailable
+    API->>API: Keep local ranking and mark trace skipped or failed
+  end
+  alt Tavily configured
+    API->>TV: Search public evidence for top candidates
+    TV-->>API: Source-linked web results
+    API->>API: Attach Tavily evidence separately from CRM notes
+  else Tavily unavailable
+    API->>API: Keep stored proof evidence
+  end
+  alt Gemini configured
+    API->>GM: Send deal and top proof match for strict JSON judgement
+    GM-->>API: Note, risks, next action and email draft
+  else Gemini unavailable
+    API->>API: Keep deterministic local judgement
+  end
+  alt Attio write mode is live
+    API->>AT: Create task and update configured summary field
+    AT-->>API: Task or update result
+  else Dry-run mode
+    API->>API: Prepare write-back preview only
+  end
+  API-->>UI: ProofRun with matches, evidence, trace and write status
+  UI-->>User: Show recommended proof and CRM action
+```
+
+This is the main judging path. The system works without live partner calls, but the strongest demo uses Superlinked, Tavily, Gemini and SLNG keys while keeping Attio mutation in dry-run unless a live CRM write is intended.
+
+## Attio or n8n Webhook Sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Source as Attio Workflow or n8n
+  participant API as ProofOps API
+  participant Cache as Idempotency cache
+  participant Agent as Proof workflow
+  participant Attio as Attio REST API
+
+  Source->>API: POST /api/attio/workflow
+  API->>API: Check PROOFOPS_WEBHOOK_SECRET if configured
+  API->>Cache: Look up Idempotency-Key or event id
+  alt Duplicate event
+    Cache-->>API: Existing ProofRun
+    API-->>Source: Return duplicate-suppressed result
+  else New event
+    API->>Agent: Run proof workflow
+    Agent->>Attio: Optional read or guarded write-back
+    Agent-->>API: ProofRun
+    API->>Cache: Store result until TTL expires
+    API-->>Source: Return workflow result
+  end
+```
+
+n8n is treated as an orchestration layer, not as the source of truth. It can trigger ProofOps, branch on the result, notify a team, or hand off to another system. Attio remains the CRM action layer.
+
+## SLNG Voice Sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant User as Sales user
+  participant Browser as React voice panel
+  participant API as ProofOps API
+  participant SLNG as SLNG Voice API
+  participant Proof as Proof workflow
+
+  User->>Browser: Record voice request
+  Browser->>API: POST /api/voice/stt with audio
+  API->>SLNG: Forward audio server-side
+  SLNG-->>API: Transcript text
+  API-->>Browser: Transcript
+  Browser->>Proof: Use transcript as proof request context
+  Proof-->>Browser: Proof summary
+  Browser->>API: POST /api/voice/tts with summary text
+  API->>SLNG: Convert summary to speech
+  SLNG-->>API: Audio bytes
+  API-->>Browser: Playable audio
+  Browser-->>User: Spoken proof summary
+```
+
+The voice path keeps the SLNG key server-side. The browser only sends recorded audio to ProofOps and receives transcript/audio results back from ProofOps.
+
+## Deployment Architecture
+
+```mermaid
+flowchart TB
+  subgraph Local["Local development"]
+    DevBrowser["Browser at 127.0.0.1:5173"]
+    Vite["Vite dev server"]
+    LocalApi["Vite middleware API"]
+    LocalEnv["Local .env"]
+    LocalData[("data/*.json")]
+    DevBrowser --> Vite
+    Vite --> LocalApi
+    LocalApi --> LocalEnv
+    LocalApi --> LocalData
+  end
+
+  subgraph Prod["Vercel production"]
+    ProdBrowser["Browser at proofops.vercel.app"]
+    Static["Vercel static frontend"]
+    Function["Vercel serverless function api/[...path].ts"]
+    VercelEnv["Vercel encrypted env vars"]
+    BundledData[("Bundled fixture JSON")]
+    ProdBrowser --> Static
+    ProdBrowser --> Function
+    Function --> VercelEnv
+    Function --> BundledData
+  end
+
+  Function --> AttioProd["Attio REST API"]
+  Function --> SuperlinkedProd["Superlinked SIE"]
+  Function --> TavilyProd["Tavily Search"]
+  Function --> GeminiProd["Gemini API"]
+  Function --> SLNGProd["SLNG Voice API"]
+```
+
+Local development and production use the same handler: `handleProofOpsApi`. Vite mounts it as middleware locally, and Vercel mounts it through `api/[...path].ts`.
+
+## Provider Fallback State Machine
+
+```mermaid
+stateDiagram-v2
+  [*] --> ResolveDeal
+  ResolveDeal --> LoadInventory
+  LoadInventory --> LocalScore
+  LocalScore --> SuperlinkedCheck
+  SuperlinkedCheck --> SuperlinkedUsed: configured and successful
+  SuperlinkedCheck --> LocalRankKept: missing key or failed
+  SuperlinkedUsed --> TavilyCheck
+  LocalRankKept --> TavilyCheck
+  TavilyCheck --> TavilyUsed: configured and successful
+  TavilyCheck --> StoredEvidence: missing key or failed
+  TavilyUsed --> GeminiCheck
+  StoredEvidence --> GeminiCheck
+  GeminiCheck --> GeminiUsed: configured and successful
+  GeminiCheck --> LocalJudgement: missing key or failed
+  GeminiUsed --> WriteBackDecision
+  LocalJudgement --> WriteBackDecision
+  WriteBackDecision --> DryRun: live write disabled
+  WriteBackDecision --> LiveWrite: live write enabled
+  DryRun --> ReturnProofRun
+  LiveWrite --> ReturnProofRun
+  ReturnProofRun --> [*]
+```
+
+The fallback design is intentional. A sponsor API failure should lower the richness of the result, not break the whole demo.
+
+## Trust Boundaries
+
+```mermaid
+flowchart LR
+  subgraph BrowserZone["Browser"]
+    UI["React UI"]
+    Mic["Microphone input"]
+  end
+
+  subgraph ServerZone["ProofOps server boundary"]
+    Routes["/api routes"]
+    Env["Server-side env vars"]
+    Adapters["Provider adapters"]
+    Trace["ProofRun trace"]
+  end
+
+  subgraph PartnerZone["Partner services"]
+    AttioSvc["Attio"]
+    SuperlinkedSvc["Superlinked"]
+    TavilySvc["Tavily"]
+    GeminiSvc["Gemini"]
+    SLNGSvc["SLNG"]
+    N8NSvc["n8n"]
+  end
+
+  UI -->|"JSON requests"| Routes
+  Mic -->|"audio upload"| Routes
+  Routes --> Env
+  Routes --> Adapters
+  Adapters --> AttioSvc
+  Adapters --> SuperlinkedSvc
+  Adapters --> TavilySvc
+  Adapters --> GeminiSvc
+  Adapters --> SLNGSvc
+  N8NSvc -->|"webhook call"| Routes
+  Routes --> Trace
+  Trace -->|"safe status and provenance"| UI
+```
+
+Data sent to external services depends on which keys are configured:
+
+- Attio receives or returns CRM deal, proof asset, task and summary data.
+- Superlinked receives deal/proof text used for semantic scoring.
+- Tavily receives public-search queries, not API secrets.
+- Gemini receives the selected deal and top proof match for structured generation.
+- SLNG receives browser audio for transcription or text for speech generation.
+- n8n receives only what a configured workflow sends or forwards.
+
 ## Component Details
 
 ### React App

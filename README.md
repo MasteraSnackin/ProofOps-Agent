@@ -86,6 +86,8 @@ flowchart LR
 
 The React app calls local API routes exposed by Vite middleware. The API reads fixture or Attio CRM data, reranks proof candidates with Superlinked, enriches them with live Tavily web evidence, asks Gemini for the final judgement, and keeps Attio write-back in dry-run mode unless live mutation is explicitly enabled.
 
+For detailed data-flow, sequence, deployment, fallback and sponsor-placement diagrams, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Installation
 
 Clone the repository and install dependencies:

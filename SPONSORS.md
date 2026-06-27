@@ -13,6 +13,85 @@ ProofOps uses the hackathon partner technologies as a sales proof agent for stal
 | n8n | Side Challenge, workflow integration point | Provides the automation handoff layer. ProofOps exposes a webhook-compatible `/api/attio/workflow` route and keeps `N8N_WEBHOOK_URL` available for orchestration demos where n8n receives or triggers the proof workflow. |
 | Tavily | Used directly for live public evidence | Finds current public sources that support or qualify a proof match. Tavily evidence is labelled separately from CRM notes so the demo can show provenance instead of blending internal claims with public verification. |
 
+## Sponsor Architecture
+
+```mermaid
+flowchart LR
+  AttioTrigger["Attio or n8n trigger"]
+  ProofOps["ProofOps API"]
+  Deals["Deal and proof context"]
+  Rank["Proof ranking"]
+  Evidence["Evidence verification"]
+  Judge["Judgement and drafts"]
+  Voice["Voice input/output"]
+  CRMAction["CRM action"]
+
+  AttioTrigger --> ProofOps
+  ProofOps --> Deals
+  Deals --> Rank
+  Rank --> Evidence
+  Evidence --> Judge
+  Judge --> CRMAction
+  Judge --> Voice
+
+  Attio["Attio"] --> AttioTrigger
+  Attio --> Deals
+  Attio --> CRMAction
+  N8N["n8n"] --> AttioTrigger
+  Superlinked["Superlinked"] --> Rank
+  Tavily["Tavily"] --> Evidence
+  Gemini["Google DeepMind Gemini"] --> Judge
+  SLNG["SLNG"] --> Voice
+```
+
+## Sponsor Data Flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant A as Attio or n8n
+  participant P as ProofOps API
+  participant S as Superlinked
+  participant T as Tavily
+  participant G as Gemini
+  participant V as SLNG
+  participant C as Attio CRM
+
+  A->>P: Trigger proof workflow
+  P->>C: Read live CRM records when mapped
+  P->>P: Fall back to fixture CRM records when not mapped
+  P->>S: Rerank candidate proof assets
+  S-->>P: Semantic relevance scores
+  P->>T: Search public sources for top matches
+  T-->>P: Evidence links and snippets
+  P->>G: Ask for structured judgement and drafts
+  G-->>P: JSON note, risks, action and email
+  P->>C: Dry-run or live write-back
+  P->>V: Optional STT or TTS through voice routes
+```
+
+## What Judges Can See
+
+| Partner | Visible proof in the demo |
+| --- | --- |
+| Attio | The UI starts from a stalled deal, shows Attio-style trigger context and displays the write-back preview or live write status. `/api/health` reports whether Attio credentials are configured. |
+| Superlinked | The workflow trace shows whether Superlinked semantic retrieval completed, failed or was skipped. Matches include semantic ranking notes when Superlinked is used. |
+| Tavily | Evidence cards show source-linked public evidence and label it as Tavily live web evidence. |
+| Google DeepMind / Gemini | The top proof match contains Gemini-enhanced judgement, risk handling, recommended action, CRM note and email draft when configured. |
+| SLNG | The voice panel supports recording a spoken request and playing a spoken proof summary through `/api/voice/stt` and `/api/voice/tts`. |
+| n8n | The webhook-compatible `/api/attio/workflow` route supports automation handoff with idempotency and optional shared-secret verification. |
+
+## Implementation Map
+
+| Partner | Main files or routes |
+| --- | --- |
+| Attio | `server/proofops-api.ts`, `/api/proof/run`, `/api/attio/workflow`, Attio write-back helpers |
+| Superlinked | `server/proofops-api.ts`, `rerankWithSuperlinked`, `SUPERLINKED_API_KEY`, `SIE_ENDPOINT` |
+| Tavily | `server/proofops-api.ts`, `enrichWithTavily`, `TAVILY_API_KEY` |
+| Google DeepMind / Gemini | `server/proofops-api.ts`, `rankWithGemini`, `GOOGLE_API_KEY`, `GEMINI_MODEL` |
+| SLNG | `src/main.tsx`, `server/proofops-api.ts`, `/api/voice/stt`, `/api/voice/tts` |
+| n8n | `/api/attio/workflow`, `N8N_WEBHOOK_URL`, idempotency and webhook-secret handling |
+
 ## Challenge Coverage
 
 | Challenge or Track | How ProofOps qualifies |
