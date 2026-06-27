@@ -395,6 +395,7 @@ function App() {
               </div>
             )}
             {showResults && <OutcomeSnapshot deal={selectedDeal} match={topMatch} run={run} />}
+            {showResults && <ReferencePack match={topMatch} run={run} />}
             {showResults && activeTab === "matches" && <MatchesView matches={matches} />}
             {showResults && activeTab === "writes" && <WritesView deal={selectedDeal} match={topMatch} run={run} />}
             {showResults && activeTab === "sources" && <SourcesView match={topMatch} />}
@@ -568,6 +569,54 @@ function MatchesView({ matches }: { matches: ProofMatch[] }) {
   );
 }
 
+function ReferencePack({ match, run }: { match: ProofMatch; run: ProofRun | null }) {
+  const liveSources = match.customer.evidence.filter((source) => source.provider === "tavily" && source.url);
+  const linkedSources = liveSources.length ? liveSources : match.customer.evidence.filter((source) => source.url);
+  const shownSources = linkedSources.slice(0, 2);
+  const crmSource = run?.dataProvider === "attio" ? "Live Attio proof asset" : "Fixture CRM proof asset";
+  const sourceLabel = liveSources.length ? `${liveSources.length} live Tavily source${liveSources.length === 1 ? "" : "s"}` : `${match.customer.evidence.length} stored proof source${match.customer.evidence.length === 1 ? "" : "s"}`;
+
+  return (
+    <section className="reference-pack" aria-label="Generated proof reference, consent and sources">
+      <article className="reference-card">
+        <p className="eyebrow">Reference</p>
+        <h3>{match.customer.company}</h3>
+        <p>{match.customer.champion}</p>
+        <div className="reference-meta">
+          <span>{crmSource}</span>
+          <span>{match.customer.sector}</span>
+          <span>{match.customer.segment}</span>
+        </div>
+      </article>
+      <article className={`reference-card consent-${match.consentPolicy.severity}`}>
+        <p className="eyebrow">Consent</p>
+        <h3>{match.consentPolicy.label}</h3>
+        <p>{match.consentPolicy.externalUse}</p>
+        <div className="reference-meta">
+          <span>{formatConsentExpiry(match.customer.consentExpiresAt)}</span>
+          <span>{match.consentPolicy.nextAction}</span>
+        </div>
+      </article>
+      <article className="reference-card">
+        <p className="eyebrow">Sources</p>
+        <h3>{sourceLabel}</h3>
+        {shownSources.length > 0 ? (
+          <div className="mini-source-list">
+            {shownSources.map((source) => (
+              <a href={source.url} target="_blank" rel="noreferrer" key={`${source.title}-${source.url}`}>
+                <ExternalLink size={14} />
+                <span>{source.title}</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p>{match.customer.evidence[0]?.claim || "Stored proof evidence is available for this reference."}</p>
+        )}
+      </article>
+    </section>
+  );
+}
+
 function WritesView({ deal, match, run }: { deal: Deal; match: ProofMatch; run: ProofRun | null }) {
   return (
     <div className="write-layout">
@@ -666,6 +715,11 @@ function formatEvidenceProvider(provider: ProofMatch["customer"]["evidence"][num
   if (provider === "tavily") return "Live web";
   if (provider === "attio") return "Attio record";
   return "Fixture note";
+}
+
+function formatConsentExpiry(value: string | undefined) {
+  if (!value) return "No expiry recorded";
+  return `Consent expires ${value}`;
 }
 
 function formatWriteStatus(status: ProofRun["attioWrite"]["status"]) {

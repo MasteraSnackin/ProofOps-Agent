@@ -715,6 +715,104 @@ nav a.active {
   font-size: 0.82rem;
 }
 
+.reference-pack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(260px, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.reference-card {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfc;
+}
+
+.reference-card h3,
+.reference-card p {
+  margin: 0;
+}
+
+.reference-card h3 {
+  font-size: 0.98rem;
+}
+
+.reference-card p {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.reference-card.consent-clear {
+  border-color: #bee0d2;
+  background: var(--green-soft);
+}
+
+.reference-card.consent-needs-action {
+  border-color: #ead179;
+  background: var(--gold-soft);
+}
+
+.reference-card.consent-blocked {
+  border-color: #efcccc;
+  background: #fff2f2;
+}
+
+.reference-meta,
+.mini-source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reference-meta {
+  margin-top: auto;
+}
+
+.reference-meta span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #42514b;
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.mini-source-list {
+  display: grid;
+  gap: 7px;
+}
+
+.mini-source-list a {
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: var(--blue);
+  font-size: 0.8rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.mini-source-list a:hover {
+  text-decoration: underline;
+}
+
+.mini-source-list span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .match-head {
   justify-content: space-between;
   gap: 10px;
@@ -1010,6 +1108,7 @@ pre {
 
   .grid,
   .outcome-snapshot,
+  .reference-pack,
   .trace {
     grid-template-columns: 1fr 1fr;
   }
@@ -1040,6 +1139,7 @@ pre {
   .match-grid,
   .write-layout,
   .outcome-snapshot,
+  .reference-pack,
   .trace {
     grid-template-columns: 1fr;
   }
