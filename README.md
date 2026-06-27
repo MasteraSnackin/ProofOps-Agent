@@ -179,11 +179,19 @@ Production demo:
 
 [https://proofops.vercel.app](https://proofops.vercel.app)
 
+Narrated three-minute demo video:
+
+[Watch or download the SLNG voiceover demo video](docs/assets/proofops-agent-demo-voiceover.mp4)
+
+Voiceover script:
+
+[docs/demo-video-script.md](docs/demo-video-script.md)
+
 Animated workflow capture:
 
 <img src="docs/assets/proofops-agent-demo.gif" alt="Animated ProofOps workflow showing deal selection, proof matching, live sources and Attio write-back" width="960">
 
-The capture shows ProofOps moving from a stalled Attio-style deal to a generated proof recommendation with reference contact, consent status, live Tavily sources, Gemini judgement, Superlinked retrieval and dry-run Attio write-back.
+The video and capture show ProofOps moving from a stalled Attio-style deal to a generated proof recommendation with reference contact, consent status, live Tavily sources, Gemini judgement, Superlinked retrieval and dry-run Attio write-back.
 
 ### Demo Frames
 
