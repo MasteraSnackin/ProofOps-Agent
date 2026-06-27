@@ -183,6 +183,8 @@ Narrated three-minute demo video:
 
 [Watch or download the SLNG voiceover demo video](docs/assets/proofops-agent-demo-voiceover.mp4)
 
+The current video shows the live agent workflow and then opens the GitHub sponsor and architecture documentation so judges can see how Attio, Superlinked, Tavily, Google DeepMind Gemini, SLNG and n8n are used.
+
 Voiceover script:
 
 [docs/demo-video-script.md](docs/demo-video-script.md)
@@ -202,6 +204,8 @@ The video and capture show ProofOps moving from a stalled Attio-style deal to a 
 | 3 | <img src="docs/assets/proofops-03-generated-reference.jpg" alt="ProofOps generated reference result" width="320"> | The generated result recommends Northstar Health Trust, shows the reference contact and confirms consent is approved until 2026-12-15. |
 | 4 | <img src="docs/assets/proofops-04-live-sources.jpg" alt="ProofOps live source evidence" width="320"> | The Evidence tab shows live Tavily source links and confidence labels. |
 | 5 | <img src="docs/assets/proofops-05-attio-writeback.jpg" alt="ProofOps Attio write-back preview" width="320"> | The Attio writes tab shows the CRM-ready note, follow-up task and draft reference request. |
+| 6 | <img src="docs/assets/proofops-06-github-sponsors.jpg" alt="ProofOps GitHub sponsor page" width="320"> | The GitHub sponsor page lists each partner technology, why it is used and where it appears in the demo. |
+| 7 | <img src="docs/assets/proofops-07-github-architecture.jpg" alt="ProofOps GitHub architecture diagrams" width="320"> | The GitHub architecture page shows sponsor placement and data-flow diagrams for the agent workflow. |
 
 Local demo path:
 
