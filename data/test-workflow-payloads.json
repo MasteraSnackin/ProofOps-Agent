@@ -6,7 +6,7 @@
     "path": "/api/attio/workflow",
     "headers": {
       "content-type": "application/json",
-      "x-proofops-secret": "dev-secret",
+      "x-proofops-secret": "__PROOFOPS_WEBHOOK_SECRET__",
       "idempotency-key": "evt_camden_stalled_001"
     },
     "body": {
@@ -42,7 +42,7 @@
     "path": "/api/attio/workflow",
     "headers": {
       "content-type": "application/json",
-      "x-proofops-secret": "dev-secret",
+      "x-proofops-secret": "__PROOFOPS_WEBHOOK_SECRET__",
       "idempotency-key": "evt_camden_stalled_001"
     },
     "body": {
@@ -80,7 +80,7 @@
       "trigger": "manual_proof_request"
     },
     "requires_env": {
-      "PROOFOPS_WEBHOOK_SECRET": "dev-secret"
+      "PROOFOPS_WEBHOOK_SECRET": "__PROOFOPS_WEBHOOK_SECRET__"
     },
     "expected": {
       "http_status": 401,
@@ -94,7 +94,7 @@
     "path": "/api/attio/workflow",
     "headers": {
       "content-type": "application/json",
-      "authorization": "Bearer dev-secret",
+      "authorization": "Bearer __PROOFOPS_WEBHOOK_SECRET__",
       "idempotency-key": "evt_quarry_security_001"
     },
     "body": {
@@ -162,11 +162,11 @@
     "path": "/api/attio/workflow",
     "headers": {
       "content-type": "application/json",
-      "x-proofops-secret": "dev-secret",
+      "x-proofops-secret": "__PROOFOPS_WEBHOOK_SECRET__",
       "idempotency-key": "evt_orbit_dry_run"
     },
     "requires_env": {
-      "ATTIO_API_KEY": "test-token",
+      "ATTIO_API_KEY": "__ATTIO_API_KEY__",
       "ATTIO_WRITE_MODE": "dry-run"
     },
     "body": {
@@ -185,11 +185,11 @@
     "path": "/api/attio/workflow",
     "headers": {
       "content-type": "application/json",
-      "x-proofops-secret": "dev-secret",
+      "x-proofops-secret": "__PROOFOPS_WEBHOOK_SECRET__",
       "idempotency-key": "evt_shoreline_live_ready"
     },
     "requires_env": {
-      "ATTIO_API_KEY": "real-token-required",
+      "ATTIO_API_KEY": "__ATTIO_API_KEY__",
       "ATTIO_WRITE_MODE": "live",
       "ATTIO_DEAL_OBJECT": "deals",
       "ATTIO_PROOF_ATTRIBUTE": "proofops_summary"

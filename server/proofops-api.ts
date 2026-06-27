@@ -34,6 +34,11 @@ type RequestMeta = {
 const jsonHeaders = { "content-type": "application/json" };
 const runCache = new Map<string, { expiresAt: number; run: ProofRun }>();
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const fixtureFiles = {
+  dealRecords: resolve(rootDir, "data", "test-deals.json"),
+  proofRecords: resolve(rootDir, "data", "test-proof-assets.json"),
+  workflowPayloads: resolve(rootDir, "data", "test-workflow-payloads.json"),
+} as const;
 let fixtureCache:
   | {
       dealRecords: FixtureRecord[];
@@ -281,9 +286,9 @@ async function runProofOps(body: JsonBody, env: Env, meta: RequestMeta): Promise
 function loadFixtureData() {
   if (fixtureCache) return fixtureCache;
 
-  const dealRecords = readFixtureFile<FixtureRecord[]>("data/test-deals.json", []);
-  const proofRecords = readFixtureFile<FixtureRecord[]>("data/test-proof-assets.json", []);
-  const workflowPayloads = readFixtureFile<JsonBody[]>("data/test-workflow-payloads.json", []);
+  const dealRecords = readDealFixtureRecords();
+  const proofRecords = readProofFixtureRecords();
+  const workflowPayloads = readWorkflowPayloadFixtures();
 
   fixtureCache = {
     dealRecords,
@@ -296,11 +301,27 @@ function loadFixtureData() {
   return fixtureCache;
 }
 
-function readFixtureFile<T>(relativePath: string, fallback: T): T {
+function readDealFixtureRecords(): FixtureRecord[] {
   try {
-    return JSON.parse(readFileSync(resolve(rootDir, relativePath), "utf8")) as T;
+    return JSON.parse(readFileSync(fixtureFiles.dealRecords, "utf8")) as FixtureRecord[];
   } catch {
-    return fallback;
+    return [];
+  }
+}
+
+function readProofFixtureRecords(): FixtureRecord[] {
+  try {
+    return JSON.parse(readFileSync(fixtureFiles.proofRecords, "utf8")) as FixtureRecord[];
+  } catch {
+    return [];
+  }
+}
+
+function readWorkflowPayloadFixtures(): JsonBody[] {
+  try {
+    return JSON.parse(readFileSync(fixtureFiles.workflowPayloads, "utf8")) as JsonBody[];
+  } catch {
+    return [];
   }
 }
 

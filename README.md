@@ -239,12 +239,7 @@ Example Attio/n8n webhook body:
 }
 ```
 
-When `PROOFOPS_WEBHOOK_SECRET` is set, `/api/attio/workflow` requires one of:
-
-```http
-x-proofops-secret: your-shared-secret
-authorization: Bearer your-shared-secret
-```
+When `PROOFOPS_WEBHOOK_SECRET` is set, `/api/attio/workflow` requires either the `x-proofops-secret` header or an `authorization` bearer header containing the configured secret value. Do not commit that value to git.
 
 Repeated workflow calls are deduplicated with `Idempotency-Key` or the Attio deal/event id.
 
