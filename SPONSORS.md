@@ -90,7 +90,7 @@ sequenceDiagram
 | Tavily | `server/proofops-api.ts`, `enrichWithTavily`, `TAVILY_API_KEY` |
 | Google DeepMind / Gemini | `server/proofops-api.ts`, `rankWithGemini`, `GOOGLE_API_KEY`, `GEMINI_MODEL` |
 | SLNG | `src/main.tsx`, `server/proofops-api.ts`, `/api/voice/stt`, `/api/voice/tts` |
-| n8n | `/api/attio/workflow`, `N8N_WEBHOOK_URL`, idempotency and webhook-secret handling |
+| n8n | `n8n/proofops-attio-workflow.json`, `docs/n8n-workflow.md`, `/api/attio/workflow`, `N8N_WEBHOOK_URL`, idempotency and webhook-secret handling |
 
 ## Challenge Coverage
 

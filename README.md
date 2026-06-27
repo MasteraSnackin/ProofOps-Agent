@@ -24,6 +24,7 @@ The current project uses fixture Attio-shaped CRM records for deals and proof as
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
+- [n8n Workflow](#n8n-workflow)
 - [Screenshots or Demo](#screenshots-or-demo)
 - [Deployment](#deployment)
 - [API Reference](#api-reference)
@@ -87,6 +88,16 @@ flowchart LR
 The React app calls local API routes exposed by Vite middleware. The API reads fixture or Attio CRM data, reranks proof candidates with Superlinked, enriches them with live Tavily web evidence, asks Gemini for the final judgement, and keeps Attio write-back in dry-run mode unless live mutation is explicitly enabled.
 
 For detailed data-flow, sequence, deployment, fallback and sponsor-placement diagrams, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## n8n Workflow
+
+ProofOps includes an importable n8n workflow for the automation handoff:
+
+[n8n/proofops-attio-workflow.json](n8n/proofops-attio-workflow.json)
+
+Setup and test instructions are in [docs/n8n-workflow.md](docs/n8n-workflow.md).
+
+The workflow receives an Attio-style event, normalises `dealId` and idempotency data, calls `POST /api/attio/workflow`, then returns a concise proof summary. ProofOps keeps the sponsor API keys server-side; n8n only calls the ProofOps API.
 
 ## Installation
 

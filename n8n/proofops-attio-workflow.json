@@ -1,0 +1,307 @@
+{
+  "name": "ProofOps Agent - Attio Workflow Handoff",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "ProofOps n8n workflow\n\nReceives an Attio-style CRM event, normalises it, calls ProofOps, then returns a concise proof result. ProofOps keeps Attio, Superlinked, Tavily, Gemini and SLNG credentials server-side.",
+        "height": 220,
+        "width": 320
+      },
+      "id": "f76555b1-d2d7-4e97-a5dd-5e1ca6684045",
+      "name": "Workflow note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        -280
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b1514e9c-00d0-4e7a-87da-6482d207db8d",
+      "name": "Manual Demo Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -760,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    body: {\n      dealId: 'deal-001',\n      source: 'n8n-manual-demo',\n      trigger: 'manual_demo_run',\n      proof_need: 'Find public-sector proof for Camden Integrated Care Board before the board prep call.',\n      events: [\n        {\n          event_id: `n8n_manual_${Date.now()}`,\n          type: 'manual.demo',\n          id: {\n            workspace_id: 'wrk_demo',\n            object_id: 'obj_deals',\n            record_id: 'deal-001'\n          }\n        }\n      ]\n    },\n    headers: {}\n  }\n}];"
+      },
+      "id": "60fd7f38-bf7e-4202-a645-53f6f55c3a8a",
+      "name": "Build Manual Demo Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "salesforce-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "35f86e63-5093-42e6-b7a0-5d74bc488432",
+      "name": "Attio or CRM Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        -100
+      ],
+      "webhookId": "proofops-attio-handoff"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body && typeof $json.body === 'object' ? $json.body : $json;\nconst headers = $json.headers && typeof $json.headers === 'object' ? $json.headers : {};\nconst firstEvent = Array.isArray(body.events) ? body.events[0] : undefined;\nconst eventRecordId = firstEvent?.id?.record_id || firstEvent?.data?.record_id;\nconst dealId = body.dealId || body.deal_id || body.recordId || body.record_id || eventRecordId || body.deal?.id;\n\nif (!dealId && !body.deal) {\n  throw new Error('ProofOps needs either dealId or an inline deal payload.');\n}\n\nconst headerIdempotency = headers['idempotency-key'] || headers['Idempotency-Key'];\nconst eventId = firstEvent?.event_id || firstEvent?.id;\nconst idempotencyKey = body.idempotencyKey || body.idempotency_key || headerIdempotency || eventId || `n8n-proofops-${dealId || Date.now()}`;\nconst proofopsUrl = body.proofopsUrl || 'https://proofops.vercel.app/api/attio/workflow';\n\nreturn [{\n  json: {\n    proofopsUrl,\n    proofopsSecret: body.proofopsSecret || '',\n    idempotencyKey: String(idempotencyKey),\n    payload: {\n      ...body,\n      dealId,\n      source: body.source || 'n8n-attio-workflow',\n      trigger: body.trigger || body.event_type || firstEvent?.type || 'n8n_webhook',\n      events: Array.isArray(body.events) ? body.events : [\n        {\n          event_id: String(idempotencyKey),\n          type: body.event_type || 'n8n.webhook',\n          id: {\n            record_id: dealId\n          }\n        }\n      ]\n    }\n  }\n}];"
+      },
+      "id": "83988291-36b6-48d9-bcd4-cd4c32ef3e11",
+      "name": "Normalise ProofOps Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.proofopsUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "idempotency-key",
+              "value": "={{ $json.idempotencyKey }}"
+            },
+            {
+              "name": "x-proofops-secret",
+              "value": "={{ $json.proofopsSecret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "b189f7f3-4a0f-4771-aaca-7775a82fc21d",
+      "name": "Call ProofOps Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const statusCode = Number($json.statusCode || 200);\nlet proofRun = $json.body || $json;\n\nif (typeof proofRun === 'string') {\n  try {\n    proofRun = JSON.parse(proofRun);\n  } catch {\n    proofRun = { raw: proofRun };\n  }\n}\n\nconst bestMatch = Array.isArray(proofRun.matches) ? proofRun.matches[0] : undefined;\nconst ok = statusCode >= 200 && statusCode < 300 && !proofRun.error;\n\nreturn [{\n  json: {\n    ok,\n    statusCode,\n    response: {\n      ok,\n      statusCode,\n      deal: proofRun.deal?.company || proofRun.deal?.id || null,\n      bestMatch: bestMatch?.company || null,\n      consent: bestMatch?.consent || null,\n      retrievalProvider: proofRun.retrievalProvider || null,\n      evidenceProvider: proofRun.evidenceProvider || null,\n      reasoningProvider: proofRun.reasoningProvider || null,\n      attioWriteStatus: proofRun.attioWrite?.status || null,\n      duplicateSuppressed: Boolean(proofRun.security?.duplicateSuppressed),\n      idempotencyKey: proofRun.idempotencyKey || null,\n      trace: Array.isArray(proofRun.trace) ? proofRun.trace.map((step) => ({ label: step.label, status: step.status })) : [],\n      error: proofRun.error || null\n    },\n    proofRun\n  }\n}];"
+      },
+      "id": "30a6e545-dce7-43c6-a8fb-902bcd3e4adf",
+      "name": "Format ProofOps Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "acb859d4-8d90-4e6e-b8da-7fd64972ff2e",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "559c11c1-cb2b-4a85-9126-322f6b48d421",
+      "name": "ProofOps OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        700,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.response) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "61cf57c0-5ae7-46ef-b2cb-89720a725b07",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        980,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.response) }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "7c8e3cb3-b823-4c0a-9297-104f414c9cb5",
+      "name": "Respond Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        980,
+        140
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Demo Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Manual Demo Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Manual Demo Payload": {
+      "main": [
+        [
+          {
+            "node": "Normalise ProofOps Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attio or CRM Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalise ProofOps Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise ProofOps Payload": {
+      "main": [
+        [
+          {
+            "node": "Call ProofOps Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call ProofOps Agent": {
+      "main": [
+        [
+          {
+            "node": "Format ProofOps Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format ProofOps Result": {
+      "main": [
+        [
+          {
+            "node": "ProofOps OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ProofOps OK?": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "timezone": "Europe/London"
+  },
+  "versionId": "8d72a95d-1b42-4496-b488-6298ba071ef7",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "ProofOpsAttioWorkflowHandoff",
+  "tags": [
+    {
+      "name": "ProofOps"
+    },
+    {
+      "name": "Attio"
+    },
+    {
+      "name": "n8n"
+    }
+  ]
+}

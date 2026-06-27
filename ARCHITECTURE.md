@@ -472,7 +472,7 @@ Data sent to external services depends on which keys are configured:
 ### n8n Webhook
 
 - **Responsibilities:** Optional external automation shell for webhook intake, branching and notifications.
-- **Main technologies:** n8n webhook URL configured through `N8N_WEBHOOK_URL`.
+- **Main technologies:** Importable workflow in `n8n/proofops-attio-workflow.json`, n8n webhook URL configured through `N8N_WEBHOOK_URL`.
 - **Data owned or transformed:** ProofOps does not automatically send CRM data to n8n. n8n can call ProofOps if configured externally.
 - **External dependencies:** n8n cloud or self-hosted instance.
 - **Failure modes or operational concerns:** Public webhook URLs can transmit data outside the local environment. Use only with deliberate payload design and access controls.
